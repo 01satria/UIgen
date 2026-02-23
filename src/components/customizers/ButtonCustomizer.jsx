@@ -69,11 +69,11 @@ function buildButtonCode(state) {
 <button class="glass-btn">⚡ Primary</button>`;
 
   return `const glassStyle = {
-  background: \\`rgba(${state.color}, ${a})\\`,
-  backdropFilter: \\`${bFilter}\\`,
-  WebkitBackdropFilter: \\`${bFilter}\\`,
-  border: \\`1px solid rgba(${state.color}, ${ba})\\`,
-  borderRadius: \\`${state.radius}px\\`,
+  background: \`rgba(${state.color}, ${a})\`,
+  backdropFilter: \`${bFilter}\`,
+  WebkitBackdropFilter: \`${bFilter}\`,
+  border: \`1px solid rgba(${state.color}, ${ba})\`,
+  borderRadius: \`${state.radius}px\`,
   padding: '0.6rem 1.5rem',
   fontWeight: 600,
   color: '#fff',
@@ -83,7 +83,7 @@ function buildButtonCode(state) {
 
 const hoverStyle = {
   transform: 'translateY(-2px) scale(1.04)',
-  boxShadow: \\`0 8px 24px rgba(0,0,0,${sa})\\`,
+  boxShadow: \`0 8px 24px rgba(0,0,0,${sa})\`,
 };
 
 export const GlassButton = ({ children, onClick }) => {

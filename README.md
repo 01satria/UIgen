@@ -242,4 +242,3 @@ MIT License — free for personal and commercial use.
 ---
 
 **Made with ◈ by GlassForge** — [glassforge.vercel.app](https://glassforge.vercel.app)
-sudah dideploy tapi tolong tampilkan syntax komponennya juga (html atau php atau apalah, jangan css aja). pastikan user tinggal klik copy dan semua komponen langsung muncul dengan tampilan yang sama persis dengan dengan yang ada di preview live. css, tailwind, react, variables tidak ada bedanya, tolong perbaiki.
