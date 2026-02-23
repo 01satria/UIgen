@@ -5,23 +5,100 @@ import { CodeBlock, StatCard } from '../ui';
 import { useState } from 'react';
 
 function buildButtonCode(state) {
-  const s = buildGlassStyle(state);
-  return `.glass-btn {
-  background: rgba(${state.color}, ${(state.opacity/100).toFixed(2)});
-  backdrop-filter: blur(${state.blur}px) saturate(${state.saturation}%);
-  -webkit-backdrop-filter: blur(${state.blur}px) saturate(${state.saturation}%);
-  border: 1px solid rgba(${state.color}, ${(state.borderOp/100).toFixed(2)});
+  const a  = (state.opacity/100).toFixed(2);
+  const ba = (state.borderOp/100).toFixed(2);
+  const sa = (state.shadow/100*0.5).toFixed(2);
+  const bFilter = `blur(${state.blur}px) saturate(${state.saturation}%)`;
+
+  if (state.tab === 'css') return `.glass-btn {
+  background: rgba(${state.color}, ${a});
+  backdrop-filter: ${bFilter};
+  -webkit-backdrop-filter: ${bFilter};
+  border: 1px solid rgba(${state.color}, ${ba});
   border-radius: ${state.radius}px;
   padding: 0.6rem 1.5rem;
   font-weight: 600;
+  color: #fff;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .glass-btn:hover {
   transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 ${state.shadow/5}px ${state.shadow/2}px rgba(0,0,0,${(state.shadow/100*0.5).toFixed(2)});
-}`;
+  box-shadow: 0 ${state.shadow/5}px ${state.shadow/2}px rgba(0,0,0,${sa});
+}
+
+<!-- HTML Markup -->
+<button class="glass-btn">⚡ Primary</button>
+<button class="glass-btn">◈ Secondary</button>`;
+
+  if (state.tab === 'tailwind') return `<!-- Tailwind CSS Markup -->
+<button class="bg-white/${Math.round(state.opacity)} backdrop-blur-[${state.blur}px] backdrop-saturate-[${state.saturation}%] border border-white/${Math.round(state.borderOp)} rounded-[${state.radius}px] px-6 py-2.5 font-semibold text-white text-sm transition-all hover:-translate-y-0.5 hover:scale-105 active:scale-95">
+  ⚡ Primary
+</button>
+
+<button class="bg-white/${Math.round(state.opacity)} backdrop-blur-[${state.blur}px] rounded-[${state.radius}px] p-3 text-white transition-all hover:-translate-y-0.5 hover:scale-105">
+  ✦
+</button>`;
+
+  if (state.tab === 'vars') return `:root {
+  --glass-bg: rgba(${state.color}, ${a});
+  --glass-blur: ${state.blur}px;
+  --glass-border: rgba(${state.color}, ${ba});
+  --glass-radius: ${state.radius}px;
+  --glass-shadow-sa: ${sa};
+}
+
+.glass-btn {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(${state.saturation}%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  padding: 0.6rem 1.5rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.glass-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+}
+
+<!-- HTML Markup -->
+<button class="glass-btn">⚡ Primary</button>`;
+
+  return `const glassStyle = {
+  background: \\`rgba(${state.color}, ${a})\\`,
+  backdropFilter: \\`${bFilter}\\`,
+  WebkitBackdropFilter: \\`${bFilter}\\`,
+  border: \\`1px solid rgba(${state.color}, ${ba})\\`,
+  borderRadius: \\`${state.radius}px\\`,
+  padding: '0.6rem 1.5rem',
+  fontWeight: 600,
+  color: '#fff',
+  cursor: 'pointer',
+  transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+};
+
+const hoverStyle = {
+  transform: 'translateY(-2px) scale(1.04)',
+  boxShadow: \\`0 8px 24px rgba(0,0,0,${sa})\\`,
+};
+
+export const GlassButton = ({ children, onClick }) => {
+  const [hovered, setHovered] = React.useState(false);
+  return (
+    <button
+      style={{ ...glassStyle, ...(hovered ? hoverStyle : {}) }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+};`;
 }
 
 export default function ButtonCustomizer({ state, update }) {

@@ -90,9 +90,20 @@ export function buildCode(state) {
   border-radius: ${radius}px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, ${sa}),
               inset 0 0 0 1px rgba(${color}, ${ba});
-}`;
+  padding: 1.5rem;
+}
 
-  if (tab === 'tailwind') return `bg-white/${Math.round(opacity)} backdrop-blur-[${blur}px] backdrop-saturate-[${saturation}%] rounded-[${radius}px] border border-white/${Math.round(borderOp)} shadow-[0_8px_32px_rgba(0,0,0,${sa})]`;
+<!-- HTML Markup -->
+<div class="glass">
+  <h2>Glass Card</h2>
+  <p>Your content here</p>
+</div>`;
+
+  if (tab === 'tailwind') return `<!-- Tailwind CSS Markup -->
+<div class="bg-white/${Math.round(opacity)} backdrop-blur-[${blur}px] backdrop-saturate-[${saturation}%] brightness-[${brightness}%] rounded-[${radius}px] border border-white/${Math.round(borderOp)} shadow-[0_8px_32px_rgba(0,0,0,${sa})] p-6">
+  <h2 class="text-xl font-bold text-white">Glass Card</h2>
+  <p class="text-white/60 mt-2">Your content here</p>
+</div>`;
 
   if (tab === 'vars') return `:root {
   --glass-bg: rgba(${color}, ${a});
@@ -109,18 +120,33 @@ export function buildCode(state) {
   border: 1px solid var(--glass-border);
   border-radius: var(--glass-radius);
   box-shadow: var(--glass-shadow);
-}`;
+  padding: 1.5rem;
+}
+
+<!-- HTML Markup -->
+<div class="glass">
+  <h2>Glass Card</h2>
+  <p>Your content here</p>
+</div>`;
 
   return `const glassStyle = {
   background: \`rgba(${color}, ${a})\`,
   backdropFilter: \`${bFilter}\`,
   WebkitBackdropFilter: \`${bFilter}\`,
   border: \`1px solid rgba(${color}, ${ba})\`,
-  borderRadius: ${radius},
+  borderRadius: \`${radius}px\`,
   boxShadow: \`0 8px 32px rgba(0,0,0,${sa})\`,
+  padding: '1.5rem',
 };
 
 export const GlassCard = ({ children }) => (
-  <div style={glassStyle}>{children}</div>
+  <div style={glassStyle}>
+    <h2 style={{ color: '#fff', fontWeight: 700, fontSize: '1.25rem' }}>
+      Glass Card
+    </h2>
+    <p style={{ color: 'rgba(255,255,255,0.6)', marginTop: '0.5rem' }}>
+      {children}
+    </p>
+  </div>
 );`;
 }

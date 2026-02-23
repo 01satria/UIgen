@@ -9,7 +9,9 @@ function buildModalCode(state) {
   const a  = (state.opacity / 100).toFixed(2);
   const ba = (state.borderOp / 100).toFixed(2);
   const sa = (state.shadow / 100 * 0.5).toFixed(2);
-  return `.modal-overlay {
+  const bFilter = `blur(${state.blur}px) saturate(${state.saturation}%)`;
+
+  if (state.tab === 'css') return `.modal-overlay {
   position: fixed; inset: 0;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
@@ -18,13 +20,123 @@ function buildModalCode(state) {
 
 .modal {
   background: rgba(${state.color}, ${a});
-  backdrop-filter: blur(${state.blur}px) saturate(${state.saturation}%);
-  -webkit-backdrop-filter: blur(${state.blur}px) saturate(${state.saturation}%);
+  backdrop-filter: ${bFilter};
+  -webkit-backdrop-filter: ${bFilter};
   border: 1px solid rgba(${state.color}, ${ba});
   border-radius: ${state.radius}px;
   box-shadow: 0 24px 64px rgba(0, 0, 0, ${sa});
   padding: 1.75rem; max-width: 480px; width: 90%;
-}`;
+}
+
+<!-- HTML Markup -->
+<div class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Confirm Action</h2>
+      <button class="modal-close">&times;</button>
+    </div>
+    <p>Are you sure you want to proceed?</p>
+    <div class="modal-actions">
+      <button class="btn-cancel">Cancel</button>
+      <button class="btn-confirm">Confirm</button>
+    </div>
+  </div>
+</div>`;
+
+  if (state.tab === 'tailwind') return `<!-- Tailwind CSS Markup -->
+<!-- Overlay -->
+<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+  <!-- Modal -->
+  <div class="bg-white/${Math.round(state.opacity)} backdrop-blur-[${state.blur}px] backdrop-saturate-[${state.saturation}%] border border-white/${Math.round(state.borderOp)} rounded-[${state.radius}px] shadow-[0_24px_64px_rgba(0,0,0,${sa})] p-7 w-[90%] max-w-lg">
+    <div class="flex items-start justify-between mb-4">
+      <div>
+        <h2 class="text-base font-bold text-white">Confirm Action</h2>
+        <p class="text-sm text-white/60 mt-1">Are you sure you want to proceed?</p>
+      </div>
+      <button class="p-1.5 rounded-lg text-white/50 hover:bg-white/10">&times;</button>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button class="flex-1 py-2 rounded-lg bg-white/10 text-white text-sm font-semibold">Cancel</button>
+      <button class="flex-1 py-2 rounded-lg bg-[#e4ff3c] text-black text-sm font-bold">Confirm</button>
+    </div>
+  </div>
+</div>`;
+
+  if (state.tab === 'vars') return `:root {
+  --glass-bg: rgba(${state.color}, ${a});
+  --glass-blur: ${state.blur}px;
+  --glass-saturation: ${state.saturation}%;
+  --glass-border: rgba(${state.color}, ${ba});
+  --glass-radius: ${state.radius}px;
+  --glass-shadow: 0 24px 64px rgba(0, 0, 0, ${sa});
+}
+
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.modal {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+  padding: 1.75rem; max-width: 480px; width: 90%;
+}
+
+<!-- HTML Markup -->
+<div class="modal-overlay">
+  <div class="modal">
+    <h2>Confirm Action</h2>
+    <p>Are you sure you want to proceed?</p>
+    <div style="display:flex;gap:0.5rem;margin-top:1.25rem">
+      <button class="btn-cancel">Cancel</button>
+      <button class="btn-confirm">Confirm</button>
+    </div>
+  </div>
+</div>`;
+
+  return `const overlayStyle = {
+  position: 'fixed', inset: 0,
+  background: 'rgba(0,0,0,0.6)',
+  backdropFilter: 'blur(4px)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  zIndex: 50,
+};
+
+const modalStyle = {
+  background: \`rgba(${state.color}, ${a})\`,
+  backdropFilter: \`${bFilter}\`,
+  WebkitBackdropFilter: \`${bFilter}\`,
+  border: \`1px solid rgba(${state.color}, ${ba})\`,
+  borderRadius: \`${state.radius}px\`,
+  boxShadow: \`0 24px 64px rgba(0,0,0,${sa})\`,
+  padding: '1.75rem',
+  maxWidth: '480px',
+  width: '90%',
+};
+
+export const GlassModal = ({ open, onClose, title, children }) => {
+  if (!open) return null;
+  return (
+    <div style={overlayStyle} onClick={onClose}>
+      <div style={modalStyle} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <h2 style={{ color: '#fff', fontWeight: 700 }}>{title}</h2>
+          <button onClick={onClose} style={{ color: 'rgba(255,255,255,0.5)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
+        </div>
+        <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', lineHeight: 1.6 }}>{children}</div>
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem' }}>
+          <button onClick={onClose} style={{ flex: 1, padding: '0.5rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+          <button onClick={onClose} style={{ flex: 1, padding: '0.5rem', borderRadius: '0.5rem', background: '#e4ff3c', color: '#000', border: 'none', cursor: 'pointer', fontWeight: 700 }}>Confirm</button>
+        </div>
+      </div>
+    </div>
+  );
+};`;
 }
 
 export default function ModalCustomizer({ state, update }) {
