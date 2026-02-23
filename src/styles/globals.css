@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500&family=Geist:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  --font-geist: 'Geist', system-ui, sans-serif;
+  --font-geist-mono: 'Geist Mono', monospace;
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --surface2: #111111;
+  --surface3: #181818;
+  --border: #1e1e1e;
+  --border-light: #282828;
+  --text: #f0f0f0;
+  --text-muted: #555555;
+  --text-dim: #888888;
+  --accent: #e4ff3c;
+  --accent-dim: rgba(228, 255, 60, 0.07);
+  --accent-border: rgba(228, 255, 60, 0.18);
+  --green: #3cffa0;
+  --red: #ff5555;
+  --blue: #3c9fff;
+  --purple: #c43cff;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* Range input */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--pct, 50%),
+    #1e1e1e var(--pct, 50%),
+    #1e1e1e 100%
+  );
+  transition: height 0.15s;
+}
+input[type="range"]:hover { height: 4px; }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #000;
+  box-shadow: 0 0 0 1.5px var(--accent), 0 2px 8px rgba(228, 255, 60, 0.25);
+  transition: transform 0.13s, box-shadow 0.13s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.4);
+  box-shadow: 0 0 0 1.5px var(--accent), 0 0 18px rgba(228, 255, 60, 0.6);
+}
+input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.6); }
+
+/* Syntax highlight */
+.t-comment  { color: #3a3a3a; font-style: italic; }
+.t-selector { color: #ff8c42; }
+.t-prop     { color: #79b8ff; }
+.t-fn       { color: #7ee787; }
+.t-num      { color: var(--accent); }
+.t-str      { color: #a5d6ff; }
+.t-kw       { color: #f0883e; }
+
+/* Shimmer animation */
+.shimmer-line {
+  height: 1px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite linear;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Card hover 3D */
+.card-3d {
+  transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.card-3d:hover {
+  transform: perspective(1000px) rotateX(4deg) rotateY(-4deg) scale(1.03);
+}
+
+/* Blob animation */
+.blob-animate {
+  animation: blobDrift 12s ease-in-out infinite;
+}
+.blob-animate:nth-child(2) { animation-delay: -4s; }
+.blob-animate:nth-child(3) { animation-delay: -8s; }
+.blob-animate:nth-child(4) { animation-delay: -2s; }
+
+@keyframes blobDrift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(20px, -15px) scale(1.08); }
+  66% { transform: translate(-15px, 10px) scale(0.95); }
+}
+
+/* Toast animations */
+@keyframes toastIn {
+  from { transform: translateY(10px) scale(0.97); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes toastOut {
+  to { transform: translateY(6px) scale(0.97); opacity: 0; }
+}
+.toast-in { animation: toastIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.toast-out { animation: toastOut 0.22s ease forwards; }
+
+/* Orb float */
+@keyframes orbFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.05); }
+}
+.orb-float { animation: orbFloat 8s ease-in-out infinite; }
+.orb-float:nth-child(2) { animation-delay: -3s; }
+.orb-float:nth-child(3) { animation-delay: -6s; }
