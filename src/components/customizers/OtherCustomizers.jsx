@@ -6,8 +6,54 @@ import { useState } from 'react';
 import { Check, X, ChevronDown, Info, Bell, AlertCircle, Home, Settings, User, BarChart2, Menu, Zap } from 'lucide-react';
 
 // ── Code Builders ─────────────────────────
+
+// Responsive helpers for generated code
+function responsiveCSS(mobile, tablet, pc) {
+  return `
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+${tablet}
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+${pc}
+}`;
+}
+
+function responsiveVars(mobile, tablet, pc) {
+  return `${mobile}
+
+@media (min-width: 768px) {
+  :root {
+${tablet}
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+${pc}
+  }
+}`;
+}
+
+const REACT_BP_HOOK = `import { useState, useEffect } from 'react';
+
+function useBreakpoint() {
+  const [bp, setBp] = useState('mobile');
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      setBp(w >= 1024 ? 'pc' : w >= 768 ? 'tablet' : 'mobile');
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  return bp;
+}`;
 function buildToastCode(state) {
-  const a = (state.opacity/100).toFixed(2), ba = (state.borderOp/100).toFixed(2), sa = (state.shadow/100*0.5).toFixed(2);
+  const a = (state.opacity / 100).toFixed(2), ba = (state.borderOp / 100).toFixed(2), sa = (state.shadow / 100 * 0.5).toFixed(2);
   const bf = `blur(${state.blur}px)`;
   if (state.tab === 'css') return `.toast {
   background: rgba(${state.color}, ${a});
@@ -15,53 +61,77 @@ function buildToastCode(state) {
   -webkit-backdrop-filter: ${bf};
   border: 1px solid rgba(${state.color}, ${ba});
   border-radius: ${state.radius}px;
-  padding: 0.65rem 1rem;
+  padding: 0.55rem 0.85rem;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, ${sa});
+  width: 100%;
+  max-width: 100%;
 }
 
 .toast-icon {
-  width: 24px;
-  height: 24px;
+  width: 22px; height: 22px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: 0.6rem; font-weight: 700;
 }
 
 .toast-icon.success { background: rgba(60,255,160,0.12); color: #3cffa0; }
 .toast-icon.error   { background: rgba(255,85,85,0.12);  color: #ff5555; }
 .toast-icon.info    { background: rgba(60,159,255,0.12); color: #3c9fff; }
 
+.toast-msg { color: #fff; font-size: 0.72rem; font-weight: 500; }
+.toast-close { margin-left: auto; color: rgba(255,255,255,0.4); background: none; border: none; cursor: pointer; }
+
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+  .toast {
+    padding: 0.6rem 0.95rem;
+    max-width: 360px;
+  }
+  .toast-icon { width: 24px; height: 24px; font-size: 0.65rem; }
+  .toast-msg  { font-size: 0.75rem; }
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+  .toast {
+    padding: 0.65rem 1rem;
+    max-width: 400px;
+  }
+  .toast-msg { font-size: 0.78rem; }
+}
+
 <!-- HTML -->
 <div class="toast">
   <div class="toast-icon success">✓</div>
-  <span style="color:#fff; font-size:0.78rem; font-weight:500">Changes saved!</span>
-  <button style="margin-left:auto; color:rgba(255,255,255,0.4); background:none; border:none; cursor:pointer">✕</button>
+  <span class="toast-msg">Changes saved!</span>
+  <button class="toast-close">✕</button>
 </div>`;
 
-  if (state.tab === 'tailwind') return `<!-- Tailwind Markup -->
-<div class="flex items-center gap-2.5
+  if (state.tab === 'tailwind') return `<!-- Tailwind Markup (Mobile-first responsive) -->
+<div class="w-full max-w-full p-2.5 px-3.5
+  md:max-w-[360px] md:px-4 md:py-2.5
+  lg:max-w-[400px] lg:px-4 lg:py-2.5
+  flex items-center gap-2
   bg-white/${Math.round(state.opacity)}
   backdrop-blur-[${state.blur}px]
   border border-white/${Math.round(state.borderOp)}
   rounded-[${state.radius}px]
-  px-4 py-2.5
   shadow-[0_8px_32px_rgba(0,0,0,${sa})]">
 
   <!-- Icon -->
-  <div class="w-6 h-6 rounded-full flex items-center justify-center
-    bg-green-500/10 text-green-400 text-xs font-bold flex-shrink-0">
+  <div class="w-5.5 h-5.5 md:w-6 md:h-6
+    rounded-full flex items-center justify-center
+    bg-green-500/10 text-green-400
+    text-[0.6rem] md:text-xs font-bold flex-shrink-0">
     ✓
   </div>
 
   <!-- Message -->
-  <span class="text-white text-sm font-medium">
+  <span class="text-white text-xs md:text-[0.75rem] lg:text-sm font-medium">
     Changes saved successfully!
   </span>
 
@@ -77,6 +147,25 @@ function buildToastCode(state) {
   --glass-border: rgba(${state.color}, ${ba});
   --glass-radius: ${state.radius}px;
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, ${sa});
+  --toast-padding: 0.55rem 0.85rem;
+  --toast-max-w: 100%;
+  --toast-font: 0.72rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --toast-padding: 0.6rem 0.95rem;
+    --toast-max-w: 360px;
+    --toast-font: 0.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --toast-padding: 0.65rem 1rem;
+    --toast-max-w: 400px;
+    --toast-font: 0.78rem;
+  }
 }
 
 .toast {
@@ -85,33 +174,43 @@ function buildToastCode(state) {
   border:          1px solid var(--glass-border);
   border-radius:   var(--glass-radius);
   box-shadow:      var(--glass-shadow);
-  padding:         0.65rem 1rem;
+  padding:         var(--toast-padding);
+  max-width:       var(--toast-max-w);
+  width:           100%;
   display:         flex;
   align-items:     center;
-  gap:             0.6rem;
+  gap:             0.5rem;
 }
+.toast-msg { font-size: var(--toast-font); }
 
 <!-- HTML -->
 <div class="toast">
   <div class="toast-icon success">✓</div>
-  <span>Changes saved!</span>
+  <span class="toast-msg">Changes saved!</span>
   <button class="toast-close">✕</button>
 </div>`;
 
   /* react */
-  return `import { useState } from 'react';
+  return `import { useState, useEffect } from 'react';
 
-const toastStyle = {
-  background:          \`rgba(${state.color}, ${a})\`,
-  backdropFilter:      \`${bf}\`,
-  WebkitBackdropFilter:\`${bf}\`,
-  border:              \`1px solid rgba(${state.color}, ${ba})\`,
-  borderRadius:        \`${state.radius}px\`,
-  boxShadow:           \`0 8px 32px rgba(0,0,0,${sa})\`,
-  padding:             '0.65rem 1rem',
-  display:             'flex',
-  alignItems:          'center',
-  gap:                 '0.6rem',
+function useBreakpoint() {
+  const [bp, setBp] = useState('mobile');
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      setBp(w >= 1024 ? 'pc' : w >= 768 ? 'tablet' : 'mobile');
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  return bp;
+}
+
+const sizes = {
+  mobile: { padding: '0.55rem 0.85rem', maxW: '100%',  fontSize: '0.72rem' },
+  tablet: { padding: '0.6rem 0.95rem',  maxW: '360px', fontSize: '0.75rem' },
+  pc:     { padding: '0.65rem 1rem',     maxW: '400px', fontSize: '0.78rem' },
 };
 
 const icons = {
@@ -121,33 +220,41 @@ const icons = {
 };
 
 export function GlassToast({ message, type = 'success', onClose }) {
+  const bp = useBreakpoint();
+  const s = sizes[bp];
   const icon = icons[type];
+
   return (
-    <div style={toastStyle}>
+    <div style={{
+      background: \`rgba(${state.color}, ${a})\`,
+      backdropFilter: \`${bf}\`,
+      WebkitBackdropFilter: \`${bf}\`,
+      border: \`1px solid rgba(${state.color}, ${ba})\`,
+      borderRadius: \`${state.radius}px\`,
+      boxShadow: \`0 8px 32px rgba(0,0,0,${sa})\`,
+      padding: s.padding, maxWidth: s.maxW, width: '100%',
+      display: 'flex', alignItems: 'center', gap: '0.5rem',
+    }}>
       <div style={{
         width: 24, height: 24, borderRadius: '50%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: icon.bg, color: icon.color,
         fontSize: '0.65rem', fontWeight: 700, flexShrink: 0,
-      }}>
-        {icon.symbol}
-      </div>
-      <span style={{ color: '#fff', fontSize: '0.78rem', fontWeight: 500 }}>
+      }}>{icon.symbol}</div>
+      <span style={{ color: '#fff', fontSize: s.fontSize, fontWeight: 500 }}>
         {message}
       </span>
       <button onClick={onClose} style={{
         marginLeft: 'auto', background: 'none', border: 'none',
         color: 'rgba(255,255,255,0.4)', cursor: 'pointer',
-      }}>
-        ✕
-      </button>
+      }}>✕</button>
     </div>
   );
 }`;
 }
 
 function buildTooltipCode(state) {
-  const a = (state.opacity/100).toFixed(2), ba = (state.borderOp/100).toFixed(2);
+  const a = (state.opacity / 100).toFixed(2), ba = (state.borderOp / 100).toFixed(2);
   const bf = `blur(${state.blur}px)`;
 
   if (state.tab === 'css') return `.tooltip-wrap {
@@ -178,6 +285,16 @@ function buildTooltipCode(state) {
 .tooltip-wrap:hover .tooltip {
   opacity:   1;
   transform: translateX(-50%) translateY(-2px);
+}
+
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+  .tooltip { padding: 0.45rem 0.85rem; font-size: 0.78rem; }
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+  .tooltip { padding: 0.5rem 0.9rem; font-size: 0.82rem; }
 }
 
 <!-- HTML -->
@@ -288,7 +405,7 @@ export function GlassTooltip({ text, children }) {
 }
 
 function buildDropdownCode(state) {
-  const a = (state.opacity/100).toFixed(2), ba = (state.borderOp/100).toFixed(2), sa = (state.shadow/100*0.5).toFixed(2);
+  const a = (state.opacity / 100).toFixed(2), ba = (state.borderOp / 100).toFixed(2), sa = (state.shadow / 100 * 0.5).toFixed(2);
   const bf = `blur(${state.blur}px) saturate(${state.saturation}%)`;
 
   if (state.tab === 'css') return `.dropdown-wrap { position: relative; width: 16rem; }
@@ -335,6 +452,20 @@ function buildDropdownCode(state) {
 }
 .dropdown-item:hover     { background: rgba(255,255,255,0.08); }
 .dropdown-item.selected  { color: #e4ff3c; font-weight: 700; }
+
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+  .dropdown-wrap    { width: 18rem; }
+  .dropdown-trigger { padding: 0.7rem 1.1rem; font-size: 0.9rem; }
+  .dropdown-item    { padding: 0.7rem 1.1rem; font-size: 0.9rem; }
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+  .dropdown-wrap    { width: 20rem; }
+  .dropdown-trigger { padding: 0.75rem 1.15rem; }
+  .dropdown-item    { padding: 0.75rem 1.15rem; }
+}
 
 <!-- HTML -->
 <div class="dropdown-wrap">
@@ -477,7 +608,7 @@ export function GlassDropdown({ placeholder = 'Select...' }) {
 }
 
 function buildBadgeCode(state) {
-  const a = (state.opacity/100).toFixed(2), ba = (state.borderOp/100).toFixed(2);
+  const a = (state.opacity / 100).toFixed(2), ba = (state.borderOp / 100).toFixed(2);
   const bf = `blur(${state.blur}px)`;
 
   if (state.tab === 'css') return `.badge {
@@ -499,6 +630,16 @@ function buildBadgeCode(state) {
 .badge-warning { background: rgba(228,255,60,0.12); border-color: rgba(228,255,60,0.3);  color: #e4ff3c; }
 .badge-danger  { background: rgba(255,85,85,0.12);  border-color: rgba(255,85,85,0.3);   color: #ff5555; }
 .badge-info    { background: rgba(60,159,255,0.12); border-color: rgba(60,159,255,0.3);  color: #3c9fff; }
+
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+  .badge { padding: 0.25rem 0.7rem; font-size: 0.7rem; }
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+  .badge { padding: 0.28rem 0.75rem; font-size: 0.72rem; }
+}
 
 <!-- HTML -->
 <span class="badge" style="color:#fff">◈ Glass</span>
@@ -591,7 +732,7 @@ export function GlassBadge({ label, variant = 'glass' }) {
 }
 
 function buildFormCode(state) {
-  const a = (state.opacity/100).toFixed(2), ba = (state.borderOp/100).toFixed(2);
+  const a = (state.opacity / 100).toFixed(2), ba = (state.borderOp / 100).toFixed(2);
   const bf = `blur(${state.blur}px)`;
 
   if (state.tab === 'css') return `.glass-form {
@@ -630,6 +771,18 @@ label {
   font-weight:   600;
   color:         rgba(255,255,255,0.5);
   margin-bottom: 0.25rem;
+}
+
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+  .glass-form  { padding: 1.75rem; max-width: 26rem; }
+  .glass-input { padding: 0.65rem 1rem; font-size: 0.9rem; }
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+  .glass-form  { padding: 2rem; max-width: 28rem; }
+  .glass-input { padding: 0.7rem 1rem; }
 }
 
 <!-- HTML -->
@@ -796,8 +949,8 @@ export function GlassForm({ onSubmit }) {
 }
 
 function buildTableCode(state) {
-  const a = (state.opacity/100).toFixed(2), ba = (state.borderOp/100).toFixed(2);
-  const ha = (state.opacity/2/100).toFixed(2);
+  const a = (state.opacity / 100).toFixed(2), ba = (state.borderOp / 100).toFixed(2);
+  const ha = (state.opacity / 2 / 100).toFixed(2);
   const bf = `blur(${state.blur}px)`;
 
   if (state.tab === 'css') return `.glass-table {
@@ -833,6 +986,23 @@ function buildTableCode(state) {
 
 .badge-active  { background: rgba(60,255,160,0.15); color: #3cffa0; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.62rem; font-weight: 700; }
 .badge-beta    { background: rgba(228,255,60,0.15);  color: #e4ff3c;  padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.62rem; font-weight: 700; }
+
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+  .glass-table th { padding: 0.85rem 1.1rem; font-size: 0.75rem; }
+  .glass-table td { padding: 0.75rem 1.1rem; font-size: 0.78rem; }
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+  .glass-table th { padding: 0.9rem 1.2rem; font-size: 0.78rem; }
+  .glass-table td { padding: 0.8rem 1.2rem; font-size: 0.8rem; }
+}
+
+/* Mobile responsive scroll */
+@media (max-width: 767px) {
+  .glass-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
 
 <!-- HTML -->
 <table class="glass-table">
@@ -882,13 +1052,13 @@ function buildTableCode(state) {
 
     <!-- Rows -->
     <tbody>
-      <tr class="bg-white/${Math.round(state.opacity/2)} border-t border-white/${Math.round(state.borderOp)} hover:bg-white/10 transition-colors">
+      <tr class="bg-white/${Math.round(state.opacity / 2)} border-t border-white/${Math.round(state.borderOp)} hover:bg-white/10 transition-colors">
         <td class="px-4 py-2.5 font-semibold text-white text-xs">GlassForge</td>
         <td class="px-4 py-2.5"><span class="bg-green-500/15 text-green-400 px-2 py-0.5 rounded-full text-[0.62rem] font-bold">Active</span></td>
         <td class="px-4 py-2.5 text-white/60 font-mono text-xs">v2.0</td>
         <td class="px-4 py-2.5 text-white/60 font-mono text-xs">4.2kb</td>
       </tr>
-      <tr class="bg-white/${Math.round(state.opacity/2)} border-t border-white/${Math.round(state.borderOp)} hover:bg-white/10 transition-colors">
+      <tr class="bg-white/${Math.round(state.opacity / 2)} border-t border-white/${Math.round(state.borderOp)} hover:bg-white/10 transition-colors">
         <td class="px-4 py-2.5 font-semibold text-white text-xs">Radix UI</td>
         <td class="px-4 py-2.5"><span class="bg-yellow-400/15 text-yellow-400 px-2 py-0.5 rounded-full text-[0.62rem] font-bold">Beta</span></td>
         <td class="px-4 py-2.5 text-white/60 font-mono text-xs">v1.8</td>
@@ -989,7 +1159,7 @@ export function GlassTable() {
 }
 
 function buildSidebarCode(state) {
-  const a = (state.opacity/100).toFixed(2), ba = (state.borderOp/100).toFixed(2), sa = (state.shadow/100*0.5).toFixed(2);
+  const a = (state.opacity / 100).toFixed(2), ba = (state.borderOp / 100).toFixed(2), sa = (state.shadow / 100 * 0.5).toFixed(2);
   const bf = `blur(${state.blur}px) saturate(${state.saturation}%)`;
 
   if (state.tab === 'css') return `.glass-sidebar {
@@ -1049,6 +1219,23 @@ function buildSidebarCode(state) {
 .sidebar-item.active {
   color:      #e4ff3c;
   background: rgba(228, 255, 60, 0.15);
+}
+
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+  .glass-sidebar { width: 220px; padding: 1.25rem 0.75rem; }
+  .sidebar-item  { font-size: 0.8rem; padding: 0.55rem 0.85rem; }
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+  .glass-sidebar { width: 260px; padding: 1.5rem 1rem; }
+  .sidebar-item  { font-size: 0.82rem; padding: 0.55rem 0.85rem; }
+}
+
+/* ── Mobile: sidebar as drawer ── */
+@media (max-width: 767px) {
+  .glass-sidebar { width: 100%; height: auto; border-radius: 0; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
 }
 
 <!-- HTML -->
@@ -1198,8 +1385,8 @@ export function GlassSidebar() {
 }
 
 function buildTabsCode(state) {
-  const a = (state.opacity/100).toFixed(2), ba = (state.borderOp/100).toFixed(2);
-  const activeA = Math.min(state.opacity/50, 1).toFixed(2);
+  const a = (state.opacity / 100).toFixed(2), ba = (state.borderOp / 100).toFixed(2);
+  const activeA = Math.min(state.opacity / 50, 1).toFixed(2);
   const bf = `blur(${state.blur}px)`;
   const innerR = Math.max(state.radius - 4, 4);
 
@@ -1237,6 +1424,23 @@ function buildTabsCode(state) {
   margin-top: 1rem;
   color:      rgba(255,255,255,0.6);
   font-size:  0.875rem;
+}
+
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+  .glass-tabs { padding: 0.3rem; }
+  .tab-item   { padding: 0.55rem 1rem; font-size: 0.82rem; }
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+  .tab-item { padding: 0.6rem 1.1rem; font-size: 0.875rem; }
+}
+
+/* ── Mobile: scrollable tabs ── */
+@media (max-width: 767px) {
+  .glass-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+  .tab-item   { white-space: nowrap; font-size: 0.78rem; padding: 0.45rem 0.8rem; }
 }
 
 <!-- HTML -->
@@ -1372,7 +1576,7 @@ export function GlassTabs({ panels }) {
 }
 
 function buildNavbarCode(state) {
-  const a = (state.opacity/100).toFixed(2), ba = (state.borderOp/100).toFixed(2);
+  const a = (state.opacity / 100).toFixed(2), ba = (state.borderOp / 100).toFixed(2);
   const bf = `blur(${state.blur}px) saturate(${state.saturation}%)`;
 
   if (state.tab === 'css') return `.glass-navbar {
@@ -1433,6 +1637,24 @@ function buildNavbarCode(state) {
   transition:    transform 0.2s;
 }
 .nav-cta:hover { transform: translateY(-1px); }
+
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+  .glass-navbar { padding: 0.85rem 1.5rem; }
+  .nav-links a  { font-size: 0.82rem; }
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+  .glass-navbar { padding: 0.85rem 2rem; }
+  .nav-links a  { font-size: 0.85rem; }
+}
+
+/* ── Mobile: hide links, show hamburger ── */
+@media (max-width: 767px) {
+  .nav-links { display: none; }
+  .glass-navbar { padding: 0.7rem 1rem; }
+}
 
 <!-- HTML -->
 <header class="glass-navbar">
@@ -1563,7 +1785,7 @@ export function GlassNavbar() {
 }
 
 function buildAvatarCode(state) {
-  const a = (state.opacity/100).toFixed(2), ba = (state.borderOp/100).toFixed(2);
+  const a = (state.opacity / 100).toFixed(2), ba = (state.borderOp / 100).toFixed(2);
   const bf = `blur(${state.blur}px)`;
 
   if (state.tab === 'css') return `.avatar {
@@ -1606,6 +1828,18 @@ function buildAvatarCode(state) {
 .avatar-group { display: flex; }
 .avatar-group .avatar { margin-left: -12px; border: 2px solid #000; }
 .avatar-group .avatar:first-child { margin-left: 0; }
+
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+  .avatar { width: 52px; height: 52px; font-size: 0.9rem; }
+  .avatar-group .avatar { width: 40px; height: 40px; }
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+  .avatar { width: 56px; height: 56px; font-size: 0.95rem; }
+  .avatar-group .avatar { width: 44px; height: 44px; }
+}
 
 <!-- HTML -->
 <!-- Single Avatar -->
@@ -1748,7 +1982,7 @@ export function GlassAvatarGroup({ users }) {
 }
 
 function buildProgressCode(state) {
-  const a = (state.opacity/100).toFixed(2), ba = (state.borderOp/100).toFixed(2);
+  const a = (state.opacity / 100).toFixed(2), ba = (state.borderOp / 100).toFixed(2);
   const bf = `blur(${state.blur}px)`;
 
   if (state.tab === 'css') return `.glass-card {
@@ -1782,6 +2016,20 @@ function buildProgressCode(state) {
   height:          100%;
   border-radius:   999px;
   transition:      width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+  .glass-card      { padding: 1.5rem; }
+  .progress-track  { height: 10px; }
+  .progress-label  { font-size: 0.75rem; }
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+  .glass-card      { padding: 1.75rem; }
+  .progress-track  { height: 12px; }
+  .progress-label  { font-size: 0.78rem; }
 }
 
 <!-- HTML -->
@@ -1982,7 +2230,7 @@ export function GlassProgress() {
 }
 
 function buildChartCode(state) {
-  const a = (state.opacity/100).toFixed(2), ba = (state.borderOp/100).toFixed(2);
+  const a = (state.opacity / 100).toFixed(2), ba = (state.borderOp / 100).toFixed(2);
   const bf = `blur(${state.blur}px) saturate(${state.saturation}%)`;
 
   if (state.tab === 'css') return `.glass-chart {
@@ -2029,6 +2277,20 @@ function buildChartCode(state) {
   font-family: monospace;
   font-size:   0.45rem;
   color:       rgba(255,255,255,0.35);
+}
+
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+  .glass-chart { padding: 1.75rem; }
+  .chart-bars  { height: 9rem; }
+  .chart-label { font-size: 0.5rem; }
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+  .glass-chart { padding: 2rem; }
+  .chart-bars  { height: 10rem; gap: 6px; }
+  .chart-label { font-size: 0.55rem; }
 }
 
 <!-- HTML -->
@@ -2189,7 +2451,7 @@ export function GlassChart() {
 }
 
 function buildSliderCode(state) {
-  const a = (state.opacity/100).toFixed(2), ba = (state.borderOp/100).toFixed(2);
+  const a = (state.opacity / 100).toFixed(2), ba = (state.borderOp / 100).toFixed(2);
   const bf = `blur(${state.blur}px)`;
 
   if (state.tab === 'css') return `.glass-panel {
@@ -2235,6 +2497,21 @@ function buildSliderCode(state) {
   transition:         transform 0.15s;
 }
 .glass-range::-webkit-slider-thumb:hover { transform: scale(1.4); }
+
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+  .glass-panel   { padding: 1.5rem; }
+  .slider-label  { font-size: 0.75rem; }
+  .glass-range   { height: 5px; }
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+  .glass-panel   { padding: 1.75rem; }
+  .slider-label  { font-size: 0.78rem; }
+  .glass-range   { height: 6px; }
+  .glass-range::-webkit-slider-thumb { width: 16px; height: 16px; }
+}
 
 <!-- HTML -->
 <div class="glass-panel">
@@ -2434,10 +2711,10 @@ export function ToastCustomizer({ state, update }) {
   const isLight = state.textColor === 'light';
 
   const toasts = [
-    { icon: <Check size={13}/>, label: 'Changes saved successfully!', color: '#3cffa0', bg: 'rgba(60,255,160,0.12)' },
-    { icon: <X size={13}/>, label: 'Something went wrong.', color: '#ff5555', bg: 'rgba(255,85,85,0.12)' },
-    { icon: <Info size={13}/>, label: 'Update available — v2.1.0', color: '#3c9fff', bg: 'rgba(60,159,255,0.12)' },
-    { icon: <Bell size={13}/>, label: 'New notification received', color: '#c43cff', bg: 'rgba(196,60,255,0.12)' },
+    { icon: <Check size={13} />, label: 'Changes saved successfully!', color: '#3cffa0', bg: 'rgba(60,255,160,0.12)' },
+    { icon: <X size={13} />, label: 'Something went wrong.', color: '#ff5555', bg: 'rgba(255,85,85,0.12)' },
+    { icon: <Info size={13} />, label: 'Update available — v2.1.0', color: '#3c9fff', bg: 'rgba(60,159,255,0.12)' },
+    { icon: <Bell size={13} />, label: 'New notification received', color: '#c43cff', bg: 'rgba(196,60,255,0.12)' },
   ];
 
   const code = buildToastCode(state);
@@ -2449,16 +2726,16 @@ export function ToastCustomizer({ state, update }) {
           <div className="flex items-center gap-2 font-mono text-[0.6rem] tracking-widest uppercase text-[#555]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e4ff3c]" />Live Preview
           </div>
-          <div className="flex gap-1.5">{BACKGROUNDS.slice(0,5).map((b,i)=><button key={i} onClick={()=>setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i===bg?'border-white':'border-transparent'}`} style={{background:b.style}}/>)}</div>
+          <div className="flex gap-1.5">{BACKGROUNDS.slice(0, 5).map((b, i) => <button key={i} onClick={() => setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i === bg ? 'border-white' : 'border-transparent'}`} style={{ background: b.style }} />)}</div>
         </div>
         <div className="relative min-h-[300px] flex flex-col items-center justify-center gap-3 p-6 overflow-hidden">
           <div className="absolute inset-0" style={{ background: BACKGROUNDS[bg].style }} />
-          <div className="blob-animate absolute w-40 h-40 rounded-full top-0 left-0 opacity-10" style={{ background: 'rgba(228,255,60,1)', filter:'blur(60px)' }} />
-          {toasts.map((t,i) => (
+          <div className="blob-animate absolute w-40 h-40 rounded-full top-0 left-0 opacity-10" style={{ background: 'rgba(228,255,60,1)', filter: 'blur(60px)' }} />
+          {toasts.map((t, i) => (
             <div key={i} className="relative z-10 w-full max-w-xs flex items-center gap-2.5" style={glassStyle}>
               <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: t.bg, color: t.color }}>{t.icon}</div>
               <span className="text-[0.78rem] font-medium" style={{ color: isLight ? '#fff' : '#111' }}>{t.label}</span>
-              <button className="ml-auto opacity-40 hover:opacity-80" style={{ color: isLight ? '#fff' : '#111' }}><X size={12}/></button>
+              <button className="ml-auto opacity-40 hover:opacity-80" style={{ color: isLight ? '#fff' : '#111' }}><X size={12} /></button>
             </div>
           ))}
         </div>
@@ -2469,7 +2746,7 @@ export function ToastCustomizer({ state, update }) {
         <StatCard label="Radius" value={state.radius} unit="px" />
         <StatCard label="Shadow" value={state.shadow} unit="%" />
       </div>
-      <CodeBlock code={code} tab={state.tab} onTabChange={v=>update('tab',v)} />
+      <CodeBlock code={code} tab={state.tab} onTabChange={v => update('tab', v)} />
     </div>
   );
 }
@@ -2490,20 +2767,20 @@ export function TooltipCustomizer({ state, update }) {
           <div className="flex items-center gap-2 font-mono text-[0.6rem] tracking-widest uppercase text-[#555]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e4ff3c]" />Live Preview — Hover items
           </div>
-          <div className="flex gap-1.5">{BACKGROUNDS.slice(0,5).map((b,i)=><button key={i} onClick={()=>setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i===bg?'border-white':'border-transparent'}`} style={{background:b.style}}/>)}</div>
+          <div className="flex gap-1.5">{BACKGROUNDS.slice(0, 5).map((b, i) => <button key={i} onClick={() => setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i === bg ? 'border-white' : 'border-transparent'}`} style={{ background: b.style }} />)}</div>
         </div>
         <div className="relative min-h-[280px] flex items-center justify-center gap-8 overflow-hidden p-6">
           <div className="absolute inset-0" style={{ background: BACKGROUNDS[bg].style }} />
-          <div className="blob-animate absolute w-48 h-48 top-0 right-0 opacity-10 rounded-full" style={{ background: 'rgba(60,159,255,1)', filter:'blur(70px)' }} />
+          <div className="blob-animate absolute w-48 h-48 top-0 right-0 opacity-10 rounded-full" style={{ background: 'rgba(60,159,255,1)', filter: 'blur(70px)' }} />
           {items.map(item => (
             <div key={item} className="group relative z-10 flex flex-col items-center gap-2 cursor-pointer">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center border border-[rgba(255,255,255,0.1)] transition-all hover:-translate-y-1 hover:shadow-lg" style={{background:'rgba(255,255,255,0.06)'}}>
-                <span className="text-xl">{item==='Home'?'🏠':item==='Analytics'?'📊':item==='Settings'?'⚙️':'👤'}</span>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center border border-[rgba(255,255,255,0.1)] transition-all hover:-translate-y-1 hover:shadow-lg" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <span className="text-xl">{item === 'Home' ? '🏠' : item === 'Analytics' ? '📊' : item === 'Settings' ? '⚙️' : '👤'}</span>
               </div>
               {/* Tooltip */}
-              <div className="absolute bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 -translate-y-2 group-hover:translate-y-0 transition-all duration-200 pointer-events-none z-20 px-3 py-1.5 text-[0.72rem] font-semibold whitespace-nowrap" style={{...glassStyle, color: isLight?'#fff':'#111'}}>
+              <div className="absolute bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 -translate-y-2 group-hover:translate-y-0 transition-all duration-200 pointer-events-none z-20 px-3 py-1.5 text-[0.72rem] font-semibold whitespace-nowrap" style={{ ...glassStyle, color: isLight ? '#fff' : '#111' }}>
                 {item}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 -mt-1" style={{background:`rgba(${state.color},${(state.opacity/100).toFixed(2)})`, border:`1px solid rgba(${state.color},${(state.borderOp/100).toFixed(2)})`}} />
+                <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 -mt-1" style={{ background: `rgba(${state.color},${(state.opacity / 100).toFixed(2)})`, border: `1px solid rgba(${state.color},${(state.borderOp / 100).toFixed(2)})` }} />
               </div>
               <span className="text-[0.65rem] text-[#555]">{item}</span>
             </div>
@@ -2516,7 +2793,7 @@ export function TooltipCustomizer({ state, update }) {
         <StatCard label="Radius" value={state.radius} unit="px" />
         <StatCard label="Shadow" value={state.shadow} unit="%" />
       </div>
-      <CodeBlock code={code} tab={state.tab} onTabChange={v=>update('tab',v)} />
+      <CodeBlock code={code} tab={state.tab} onTabChange={v => update('tab', v)} />
     </div>
   );
 }
@@ -2539,24 +2816,24 @@ export function DropdownCustomizer({ state, update }) {
           <div className="flex items-center gap-2 font-mono text-[0.6rem] tracking-widest uppercase text-[#555]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e4ff3c]" />Live Preview
           </div>
-          <div className="flex gap-1.5">{BACKGROUNDS.slice(0,5).map((b,i)=><button key={i} onClick={()=>setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i===bg?'border-white':'border-transparent'}`} style={{background:b.style}}/>)}</div>
+          <div className="flex gap-1.5">{BACKGROUNDS.slice(0, 5).map((b, i) => <button key={i} onClick={() => setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i === bg ? 'border-white' : 'border-transparent'}`} style={{ background: b.style }} />)}</div>
         </div>
         <div className="relative min-h-[320px] flex items-start justify-center pt-16 overflow-hidden p-6">
           <div className="absolute inset-0" style={{ background: BACKGROUNDS[bg].style }} />
-          <div className="blob-animate absolute w-48 h-48 top-0 left-0 opacity-10 rounded-full" style={{ background: 'rgba(196,60,255,1)', filter:'blur(70px)' }} />
+          <div className="blob-animate absolute w-48 h-48 top-0 left-0 opacity-10 rounded-full" style={{ background: 'rgba(196,60,255,1)', filter: 'blur(70px)' }} />
           <div className="relative z-10 w-64">
             <button onClick={() => setOpen(!open)}
               className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-semibold transition-all hover:scale-[1.01]"
-              style={{ ...glassStyle, color: isLight?'#fff':'#111' }}>
+              style={{ ...glassStyle, color: isLight ? '#fff' : '#111' }}>
               {selected}
-              <ChevronDown size={15} className={`transition-transform duration-200 ${open?'rotate-180':''}`} />
+              <ChevronDown size={15} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
             </button>
             {open && (
               <div className="mt-1 overflow-hidden" style={glassStyle}>
                 {options.map(opt => (
                   <button key={opt} onClick={() => { setSelected(opt); }}
-                    className={`w-full text-left px-4 py-2.5 text-sm transition-all hover:bg-white/10 ${selected===opt?'font-bold':''}`}
-                    style={{ color: isLight?'#fff':'#111' }}>
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-all hover:bg-white/10 ${selected === opt ? 'font-bold' : ''}`}
+                    style={{ color: isLight ? '#fff' : '#111' }}>
                     {selected === opt && <span className="mr-2 text-[#e4ff3c]">✓</span>}
                     {opt}
                   </button>
@@ -2572,7 +2849,7 @@ export function DropdownCustomizer({ state, update }) {
         <StatCard label="Radius" value={state.radius} unit="px" />
         <StatCard label="Shadow" value={state.shadow} unit="%" />
       </div>
-      <CodeBlock code={code} tab={state.tab} onTabChange={v=>update('tab',v)} />
+      <CodeBlock code={code} tab={state.tab} onTabChange={v => update('tab', v)} />
     </div>
   );
 }
@@ -2599,11 +2876,11 @@ export function BadgeCustomizer({ state, update }) {
           <div className="flex items-center gap-2 font-mono text-[0.6rem] tracking-widest uppercase text-[#555]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e4ff3c]" />Live Preview
           </div>
-          <div className="flex gap-1.5">{BACKGROUNDS.slice(0,5).map((b,i)=><button key={i} onClick={()=>setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i===bg?'border-white':'border-transparent'}`} style={{background:b.style}}/>)}</div>
+          <div className="flex gap-1.5">{BACKGROUNDS.slice(0, 5).map((b, i) => <button key={i} onClick={() => setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i === bg ? 'border-white' : 'border-transparent'}`} style={{ background: b.style }} />)}</div>
         </div>
         <div className="relative min-h-[280px] flex items-center justify-center flex-wrap gap-3 overflow-hidden p-6">
           <div className="absolute inset-0" style={{ background: BACKGROUNDS[bg].style }} />
-          <div className="blob-animate absolute w-48 h-48 top-0 right-0 opacity-10 rounded-full" style={{background:'rgba(228,255,60,1)',filter:'blur(70px)'}} />
+          <div className="blob-animate absolute w-48 h-48 top-0 right-0 opacity-10 rounded-full" style={{ background: 'rgba(228,255,60,1)', filter: 'blur(70px)' }} />
           {badges.map(b => (
             <span key={b.label}
               className="relative z-10 px-3 py-1 rounded-full text-[0.72rem] font-semibold border transition-all hover:scale-110 hover:-translate-y-1"
@@ -2614,7 +2891,7 @@ export function BadgeCustomizer({ state, update }) {
           {/* Glass styled */}
           {['CSS', 'React', 'v2.0', 'Free'].map(t => (
             <span key={t} className="relative z-10 text-[0.72rem] font-semibold transition-all hover:scale-110 hover:-translate-y-1"
-              style={{ ...glassStyle, padding: '0.22rem 0.7rem', borderRadius: '999px', color: isLight?'#fff':'#111' }}>
+              style={{ ...glassStyle, padding: '0.22rem 0.7rem', borderRadius: '999px', color: isLight ? '#fff' : '#111' }}>
               {t}
             </span>
           ))}
@@ -2626,7 +2903,7 @@ export function BadgeCustomizer({ state, update }) {
         <StatCard label="Radius" value={state.radius} unit="px" />
         <StatCard label="Border" value={state.borderOp} unit="%" />
       </div>
-      <CodeBlock code={code} tab={state.tab} onTabChange={v=>update('tab',v)} />
+      <CodeBlock code={code} tab={state.tab} onTabChange={v => update('tab', v)} />
     </div>
   );
 }
@@ -2646,11 +2923,11 @@ export function FormCustomizer({ state, update }) {
           <div className="flex items-center gap-2 font-mono text-[0.6rem] tracking-widest uppercase text-[#555]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e4ff3c]" />Live Preview
           </div>
-          <div className="flex gap-1.5">{BACKGROUNDS.slice(0,5).map((b,i)=><button key={i} onClick={()=>setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i===bg?'border-white':'border-transparent'}`} style={{background:b.style}}/>)}</div>
+          <div className="flex gap-1.5">{BACKGROUNDS.slice(0, 5).map((b, i) => <button key={i} onClick={() => setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i === bg ? 'border-white' : 'border-transparent'}`} style={{ background: b.style }} />)}</div>
         </div>
         <div className="relative min-h-[360px] flex items-center justify-center overflow-hidden p-6">
           <div className="absolute inset-0" style={{ background: BACKGROUNDS[bg].style }} />
-          <div className="blob-animate absolute w-48 h-48 top-0 left-0 opacity-10 rounded-full" style={{background:'rgba(60,159,255,1)',filter:'blur(70px)'}} />
+          <div className="blob-animate absolute w-48 h-48 top-0 left-0 opacity-10 rounded-full" style={{ background: 'rgba(60,159,255,1)', filter: 'blur(70px)' }} />
           <div className="relative z-10 w-full max-w-sm p-5 sm:p-6" style={glassStyle}>
             <div className="text-base font-bold mb-4" style={{ color: textColor }}>Create Account</div>
             <div className="flex flex-col gap-3">
@@ -2683,7 +2960,7 @@ export function FormCustomizer({ state, update }) {
         <StatCard label="Radius" value={state.radius} unit="px" />
         <StatCard label="Shadow" value={state.shadow} unit="%" />
       </div>
-      <CodeBlock code={code} tab={state.tab} onTabChange={v=>update('tab',v)} />
+      <CodeBlock code={code} tab={state.tab} onTabChange={v => update('tab', v)} />
     </div>
   );
 }
@@ -2708,27 +2985,27 @@ export function TableCustomizer({ state, update }) {
           <div className="flex items-center gap-2 font-mono text-[0.6rem] tracking-widest uppercase text-[#555]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e4ff3c]" />Live Preview
           </div>
-          <div className="flex gap-1.5">{BACKGROUNDS.slice(0,5).map((b,i)=><button key={i} onClick={()=>setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i===bg?'border-white':'border-transparent'}`} style={{background:b.style}}/>)}</div>
+          <div className="flex gap-1.5">{BACKGROUNDS.slice(0, 5).map((b, i) => <button key={i} onClick={() => setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i === bg ? 'border-white' : 'border-transparent'}`} style={{ background: b.style }} />)}</div>
         </div>
         <div className="relative min-h-[320px] flex items-center justify-center overflow-hidden p-6">
           <div className="absolute inset-0" style={{ background: BACKGROUNDS[bg].style }} />
-          <div className="blob-animate absolute w-48 h-48 top-0 right-0 opacity-10 rounded-full" style={{background:'rgba(60,255,160,1)',filter:'blur(70px)'}} />
-          <div className="relative z-10 w-full max-w-lg overflow-hidden" style={{ borderRadius: state.radius + 'px', border: `1px solid rgba(${state.color},${(state.borderOp/100).toFixed(2)})` }}>
+          <div className="blob-animate absolute w-48 h-48 top-0 right-0 opacity-10 rounded-full" style={{ background: 'rgba(60,255,160,1)', filter: 'blur(70px)' }} />
+          <div className="relative z-10 w-full max-w-lg overflow-hidden" style={{ borderRadius: state.radius + 'px', border: `1px solid rgba(${state.color},${(state.borderOp / 100).toFixed(2)})` }}>
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ background: `rgba(${state.color}, ${(state.opacity/100).toFixed(2)})`, backdropFilter: `blur(${state.blur}px)` }}>
-                  {['Name','Status','Version','Size'].map(h=><th key={h} className="px-3 py-2.5 text-left font-semibold text-[0.72rem]" style={{color:textColor}}>{h}</th>)}
+                <tr style={{ background: `rgba(${state.color}, ${(state.opacity / 100).toFixed(2)})`, backdropFilter: `blur(${state.blur}px)` }}>
+                  {['Name', 'Status', 'Version', 'Size'].map(h => <th key={h} className="px-3 py-2.5 text-left font-semibold text-[0.72rem]" style={{ color: textColor }}>{h}</th>)}
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r,i) => (
-                  <tr key={i} style={{ background: `rgba(${state.color}, ${((state.opacity/2)/100).toFixed(2)})`, backdropFilter: `blur(${state.blur/2}px)` }} className="transition-all hover:bg-white/10">
-                    <td className="px-3 py-2.5 font-semibold text-[0.75rem]" style={{color:textColor,borderTop:`1px solid rgba(${state.color},${(state.borderOp/100).toFixed(2)})`}}>{r.name}</td>
-                    <td className="px-3 py-2.5 text-[0.72rem]" style={{borderTop:`1px solid rgba(${state.color},${(state.borderOp/100).toFixed(2)})`}}>
-                      <span className={`px-2 py-0.5 rounded-full text-[0.62rem] font-bold ${r.status==='Active'?'bg-[rgba(60,255,160,0.15)] text-[#3cffa0]':'bg-[rgba(228,255,60,0.15)] text-[#e4ff3c]'}`}>{r.status}</span>
+                {rows.map((r, i) => (
+                  <tr key={i} style={{ background: `rgba(${state.color}, ${((state.opacity / 2) / 100).toFixed(2)})`, backdropFilter: `blur(${state.blur / 2}px)` }} className="transition-all hover:bg-white/10">
+                    <td className="px-3 py-2.5 font-semibold text-[0.75rem]" style={{ color: textColor, borderTop: `1px solid rgba(${state.color},${(state.borderOp / 100).toFixed(2)})` }}>{r.name}</td>
+                    <td className="px-3 py-2.5 text-[0.72rem]" style={{ borderTop: `1px solid rgba(${state.color},${(state.borderOp / 100).toFixed(2)})` }}>
+                      <span className={`px-2 py-0.5 rounded-full text-[0.62rem] font-bold ${r.status === 'Active' ? 'bg-[rgba(60,255,160,0.15)] text-[#3cffa0]' : 'bg-[rgba(228,255,60,0.15)] text-[#e4ff3c]'}`}>{r.status}</span>
                     </td>
-                    <td className="px-3 py-2.5 font-mono text-[0.7rem]" style={{color:isLight?'rgba(255,255,255,0.6)':'rgba(0,0,0,0.6)',borderTop:`1px solid rgba(${state.color},${(state.borderOp/100).toFixed(2)})`}}>{r.version}</td>
-                    <td className="px-3 py-2.5 font-mono text-[0.7rem]" style={{color:isLight?'rgba(255,255,255,0.6)':'rgba(0,0,0,0.6)',borderTop:`1px solid rgba(${state.color},${(state.borderOp/100).toFixed(2)})`}}>{r.size}</td>
+                    <td className="px-3 py-2.5 font-mono text-[0.7rem]" style={{ color: isLight ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)', borderTop: `1px solid rgba(${state.color},${(state.borderOp / 100).toFixed(2)})` }}>{r.version}</td>
+                    <td className="px-3 py-2.5 font-mono text-[0.7rem]" style={{ color: isLight ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)', borderTop: `1px solid rgba(${state.color},${(state.borderOp / 100).toFixed(2)})` }}>{r.size}</td>
                   </tr>
                 ))}
               </tbody>
@@ -2742,7 +3019,7 @@ export function TableCustomizer({ state, update }) {
         <StatCard label="Radius" value={state.radius} unit="px" />
         <StatCard label="Border" value={state.borderOp} unit="%" />
       </div>
-      <CodeBlock code={code} tab={state.tab} onTabChange={v=>update('tab',v)} />
+      <CodeBlock code={code} tab={state.tab} onTabChange={v => update('tab', v)} />
     </div>
   );
 }
@@ -2754,11 +3031,11 @@ export function SidebarCustomizer({ state, update }) {
   const glassStyle = buildGlassStyle(state);
   const isLight = state.textColor === 'light';
   const items = [
-    { icon: <Home size={16}/>, label: 'Dashboard' },
-    { icon: <BarChart2 size={16}/>, label: 'Analytics' },
-    { icon: <User size={16}/>, label: 'Profile' },
-    { icon: <Settings size={16}/>, label: 'Settings' },
-    { icon: <Zap size={16}/>, label: 'Upgrade' },
+    { icon: <Home size={16} />, label: 'Dashboard' },
+    { icon: <BarChart2 size={16} />, label: 'Analytics' },
+    { icon: <User size={16} />, label: 'Profile' },
+    { icon: <Settings size={16} />, label: 'Settings' },
+    { icon: <Zap size={16} />, label: 'Upgrade' },
   ];
   const code = buildSidebarCode(state);
   return (
@@ -2768,21 +3045,21 @@ export function SidebarCustomizer({ state, update }) {
           <div className="flex items-center gap-2 font-mono text-[0.6rem] tracking-widest uppercase text-[#555]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e4ff3c]" />Live Preview
           </div>
-          <div className="flex gap-1.5">{BACKGROUNDS.slice(0,5).map((b,i)=><button key={i} onClick={()=>setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i===bg?'border-white':'border-transparent'}`} style={{background:b.style}}/>)}</div>
+          <div className="flex gap-1.5">{BACKGROUNDS.slice(0, 5).map((b, i) => <button key={i} onClick={() => setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i === bg ? 'border-white' : 'border-transparent'}`} style={{ background: b.style }} />)}</div>
         </div>
         <div className="relative min-h-[340px] flex items-stretch overflow-hidden">
           <div className="absolute inset-0" style={{ background: BACKGROUNDS[bg].style }} />
-          <div className="blob-animate absolute w-48 h-48 top-0 right-0 opacity-10 rounded-full" style={{background:'rgba(60,159,255,1)',filter:'blur(70px)'}} />
+          <div className="blob-animate absolute w-48 h-48 top-0 right-0 opacity-10 rounded-full" style={{ background: 'rgba(60,159,255,1)', filter: 'blur(70px)' }} />
           {/* Sidebar */}
           <div className="relative z-10 w-48 sm:w-56 p-3 sm:p-4 flex flex-col gap-1" style={{ ...glassStyle, borderRadius: `0 ${state.radius}px ${state.radius}px 0` }}>
             <div className="flex items-center gap-2 mb-4 px-2">
               <div className="w-7 h-7 rounded-md bg-[#e4ff3c] flex items-center justify-center text-black font-black text-sm">◈</div>
-              <span className="font-bold text-sm" style={{ color: isLight?'#fff':'#111' }}>GlassForge</span>
+              <span className="font-bold text-sm" style={{ color: isLight ? '#fff' : '#111' }}>GlassForge</span>
             </div>
             {items.map((item, i) => (
               <button key={i} onClick={() => setActiveIdx(i)}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.78rem] font-semibold transition-all hover:-translate-x-0.5 text-left w-full ${activeIdx===i?'bg-[rgba(228,255,60,0.15)] text-[#e4ff3c]':''}`}
-                style={{ color: activeIdx===i?'#e4ff3c':isLight?'rgba(255,255,255,0.65)':'rgba(0,0,0,0.65)' }}>
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[0.78rem] font-semibold transition-all hover:-translate-x-0.5 text-left w-full ${activeIdx === i ? 'bg-[rgba(228,255,60,0.15)] text-[#e4ff3c]' : ''}`}
+                style={{ color: activeIdx === i ? '#e4ff3c' : isLight ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.65)' }}>
                 {item.icon}
                 {item.label}
               </button>
@@ -2792,7 +3069,7 @@ export function SidebarCustomizer({ state, update }) {
           <div className="relative z-10 flex-1 p-4 flex items-center justify-center">
             <div className="text-center">
               <div className="text-2xl mb-2">{items[activeIdx].icon}</div>
-              <div className="text-sm font-semibold" style={{color:isLight?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.5)'}}>
+              <div className="text-sm font-semibold" style={{ color: isLight ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }}>
                 {items[activeIdx].label}
               </div>
             </div>
@@ -2805,7 +3082,7 @@ export function SidebarCustomizer({ state, update }) {
         <StatCard label="Radius" value={state.radius} unit="px" />
         <StatCard label="Shadow" value={state.shadow} unit="%" />
       </div>
-      <CodeBlock code={code} tab={state.tab} onTabChange={v=>update('tab',v)} />
+      <CodeBlock code={code} tab={state.tab} onTabChange={v => update('tab', v)} />
     </div>
   );
 }
@@ -2825,20 +3102,20 @@ export function TabsCustomizer({ state, update }) {
           <div className="flex items-center gap-2 font-mono text-[0.6rem] tracking-widest uppercase text-[#555]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e4ff3c]" />Live Preview
           </div>
-          <div className="flex gap-1.5">{BACKGROUNDS.slice(0,5).map((b,i)=><button key={i} onClick={()=>setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i===bg?'border-white':'border-transparent'}`} style={{background:b.style}}/>)}</div>
+          <div className="flex gap-1.5">{BACKGROUNDS.slice(0, 5).map((b, i) => <button key={i} onClick={() => setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i === bg ? 'border-white' : 'border-transparent'}`} style={{ background: b.style }} />)}</div>
         </div>
         <div className="relative min-h-[320px] flex flex-col items-center justify-center gap-4 overflow-hidden p-6">
           <div className="absolute inset-0" style={{ background: BACKGROUNDS[bg].style }} />
-          <div className="blob-animate absolute w-48 h-48 top-0 left-0 opacity-10 rounded-full" style={{background:'rgba(228,255,60,1)',filter:'blur(70px)'}} />
+          <div className="blob-animate absolute w-48 h-48 top-0 left-0 opacity-10 rounded-full" style={{ background: 'rgba(228,255,60,1)', filter: 'blur(70px)' }} />
           {/* Tab bar */}
           <div className="relative z-10 flex gap-1 p-1" style={glassStyle}>
-            {tabs.map((t,i) => (
-              <button key={t} onClick={()=>setActiveTab(i)}
+            {tabs.map((t, i) => (
+              <button key={t} onClick={() => setActiveTab(i)}
                 className="px-3.5 py-2 text-[0.78rem] font-semibold transition-all"
                 style={{
-                  borderRadius: Math.max(state.radius-4,4)+'px',
-                  background: activeTab===i ? `rgba(${state.color}, ${Math.min(state.opacity/40,1).toFixed(2)})` : 'transparent',
-                  color: activeTab===i ? (isLight?'#fff':'#111') : isLight?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.5)',
+                  borderRadius: Math.max(state.radius - 4, 4) + 'px',
+                  background: activeTab === i ? `rgba(${state.color}, ${Math.min(state.opacity / 40, 1).toFixed(2)})` : 'transparent',
+                  color: activeTab === i ? (isLight ? '#fff' : '#111') : isLight ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
                 }}>
                 {t}
               </button>
@@ -2846,8 +3123,8 @@ export function TabsCustomizer({ state, update }) {
           </div>
           {/* Tab content */}
           <div className="relative z-10 w-full max-w-sm px-5 py-4" style={glassStyle}>
-            <div className="font-bold text-sm mb-1" style={{ color: isLight?'#fff':'#111' }}>{tabs[activeTab]}</div>
-            <div className="text-[0.75rem]" style={{ color: isLight?'rgba(255,255,255,0.55)':'rgba(0,0,0,0.55)' }}>
+            <div className="font-bold text-sm mb-1" style={{ color: isLight ? '#fff' : '#111' }}>{tabs[activeTab]}</div>
+            <div className="text-[0.75rem]" style={{ color: isLight ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)' }}>
               This is the {tabs[activeTab].toLowerCase()} tab content. Click tabs to switch between panels.
             </div>
           </div>
@@ -2859,7 +3136,7 @@ export function TabsCustomizer({ state, update }) {
         <StatCard label="Radius" value={state.radius} unit="px" />
         <StatCard label="Border" value={state.borderOp} unit="%" />
       </div>
-      <CodeBlock code={code} tab={state.tab} onTabChange={v=>update('tab',v)} />
+      <CodeBlock code={code} tab={state.tab} onTabChange={v => update('tab', v)} />
     </div>
   );
 }
@@ -2877,32 +3154,32 @@ export function NavbarCustomizer({ state, update }) {
           <div className="flex items-center gap-2 font-mono text-[0.6rem] tracking-widest uppercase text-[#555]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e4ff3c]" />Live Preview
           </div>
-          <div className="flex gap-1.5">{BACKGROUNDS.slice(0,5).map((b,i)=><button key={i} onClick={()=>setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i===bg?'border-white':'border-transparent'}`} style={{background:b.style}}/>)}</div>
+          <div className="flex gap-1.5">{BACKGROUNDS.slice(0, 5).map((b, i) => <button key={i} onClick={() => setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i === bg ? 'border-white' : 'border-transparent'}`} style={{ background: b.style }} />)}</div>
         </div>
         <div className="relative min-h-[300px] overflow-hidden">
           <div className="absolute inset-0" style={{ background: BACKGROUNDS[bg].style }} />
-          <div className="blob-animate absolute w-48 h-48 top-1/4 left-1/4 opacity-10 rounded-full" style={{background:'rgba(196,60,255,1)',filter:'blur(70px)'}} />
+          <div className="blob-animate absolute w-48 h-48 top-1/4 left-1/4 opacity-10 rounded-full" style={{ background: 'rgba(196,60,255,1)', filter: 'blur(70px)' }} />
           {/* Navbar */}
           <div className="relative z-10 px-5 py-3 flex items-center justify-between" style={glassStyle}>
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-md bg-[#e4ff3c] flex items-center justify-center text-black font-black text-sm">◈</div>
-              <span className="font-bold text-sm" style={{color:isLight?'#fff':'#111'}}>GlassForge</span>
+              <span className="font-bold text-sm" style={{ color: isLight ? '#fff' : '#111' }}>GlassForge</span>
             </div>
             <nav className="hidden sm:flex gap-4">
-              {['Home','Docs','Components','Pricing'].map(n=>(
-                <a key={n} href="#" className="text-[0.78rem] font-semibold transition-all hover:opacity-100 opacity-60" style={{color:isLight?'#fff':'#111'}}>{n}</a>
+              {['Home', 'Docs', 'Components', 'Pricing'].map(n => (
+                <a key={n} href="#" className="text-[0.78rem] font-semibold transition-all hover:opacity-100 opacity-60" style={{ color: isLight ? '#fff' : '#111' }}>{n}</a>
               ))}
             </nav>
             <div className="flex items-center gap-2">
-              <button className="px-4 py-1.5 rounded-lg text-[0.78rem] font-bold transition-all hover:-translate-y-0.5" style={{background:'#e4ff3c',color:'#000'}}>Get Started</button>
-              <button className="sm:hidden" style={{color:isLight?'#fff':'#111'}}><Menu size={18}/></button>
+              <button className="px-4 py-1.5 rounded-lg text-[0.78rem] font-bold transition-all hover:-translate-y-0.5" style={{ background: '#e4ff3c', color: '#000' }}>Get Started</button>
+              <button className="sm:hidden" style={{ color: isLight ? '#fff' : '#111' }}><Menu size={18} /></button>
             </div>
           </div>
           {/* Page content behind */}
           <div className="relative z-0 flex items-center justify-center h-[220px]">
             <div className="text-center">
-              <div className="font-bold text-2xl sm:text-3xl mb-2" style={{color:isLight?'rgba(255,255,255,0.2)':'rgba(0,0,0,0.15)'}}>Page Content</div>
-              <div className="text-sm" style={{color:isLight?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.1)'}}>Scroll to see sticky effect</div>
+              <div className="font-bold text-2xl sm:text-3xl mb-2" style={{ color: isLight ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)' }}>Page Content</div>
+              <div className="text-sm" style={{ color: isLight ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>Scroll to see sticky effect</div>
             </div>
           </div>
         </div>
@@ -2913,7 +3190,7 @@ export function NavbarCustomizer({ state, update }) {
         <StatCard label="Border" value={state.borderOp} unit="%" />
         <StatCard label="Saturation" value={state.saturation} unit="%" />
       </div>
-      <CodeBlock code={code} tab={state.tab} onTabChange={v=>update('tab',v)} />
+      <CodeBlock code={code} tab={state.tab} onTabChange={v => update('tab', v)} />
     </div>
   );
 }
@@ -2938,18 +3215,18 @@ export function AvatarCustomizer({ state, update }) {
           <div className="flex items-center gap-2 font-mono text-[0.6rem] tracking-widest uppercase text-[#555]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e4ff3c]" />Live Preview
           </div>
-          <div className="flex gap-1.5">{BACKGROUNDS.slice(0,5).map((b,i)=><button key={i} onClick={()=>setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i===bg?'border-white':'border-transparent'}`} style={{background:b.style}}/>)}</div>
+          <div className="flex gap-1.5">{BACKGROUNDS.slice(0, 5).map((b, i) => <button key={i} onClick={() => setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i === bg ? 'border-white' : 'border-transparent'}`} style={{ background: b.style }} />)}</div>
         </div>
         <div className="relative min-h-[280px] flex items-center justify-center gap-8 overflow-hidden p-6 flex-wrap">
           <div className="absolute inset-0" style={{ background: BACKGROUNDS[bg].style }} />
-          <div className="blob-animate absolute w-48 h-48 top-0 right-0 opacity-10 rounded-full" style={{background:'rgba(60,255,170,1)',filter:'blur(70px)'}} />
+          <div className="blob-animate absolute w-48 h-48 top-0 right-0 opacity-10 rounded-full" style={{ background: 'rgba(60,255,170,1)', filter: 'blur(70px)' }} />
           {/* Single avatars */}
-          {avatars.map((a,i) => (
+          {avatars.map((a, i) => (
             <div key={i} className="relative z-10 flex flex-col items-center gap-2 group cursor-pointer">
               <div className="relative">
                 <div className="w-14 h-14 rounded-full flex items-center justify-center font-bold text-sm transition-all group-hover:scale-110 group-hover:-translate-y-1"
                   style={{ ...glassStyle, border: `2px solid ${a.color}44` }}>
-                  <span style={{ color: isLight?'#fff':'#111' }}>{a.initials}</span>
+                  <span style={{ color: isLight ? '#fff' : '#111' }}>{a.initials}</span>
                 </div>
                 <div className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full border-2 border-black" style={{ background: statusColors[a.status] }} />
               </div>
@@ -2959,13 +3236,13 @@ export function AvatarCustomizer({ state, update }) {
           {/* Stacked group */}
           <div className="relative z-10 flex flex-col items-center gap-2">
             <div className="flex -space-x-3">
-              {avatars.map((a,i)=>(
+              {avatars.map((a, i) => (
                 <div key={i} className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-xs border-2 border-black transition-all hover:z-10 hover:scale-110"
                   style={{ ...glassStyle, border: `2px solid ${a.color}33` }}>
-                  <span style={{color:isLight?'#fff':'#111'}}>{a.initials[0]}</span>
+                  <span style={{ color: isLight ? '#fff' : '#111' }}>{a.initials[0]}</span>
                 </div>
               ))}
-              <div className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-xs border-2 border-black" style={{background:'rgba(255,255,255,0.1)',color:isLight?'rgba(255,255,255,0.7)':'rgba(0,0,0,0.7)'}}>+8</div>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-xs border-2 border-black" style={{ background: 'rgba(255,255,255,0.1)', color: isLight ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)' }}>+8</div>
             </div>
             <span className="font-mono text-[0.58rem] text-[#555]">Stacked group</span>
           </div>
@@ -2977,7 +3254,7 @@ export function AvatarCustomizer({ state, update }) {
         <StatCard label="Border" value={state.borderOp} unit="%" />
         <StatCard label="Saturation" value={state.saturation} unit="%" />
       </div>
-      <CodeBlock code={code} tab={state.tab} onTabChange={v=>update('tab',v)} />
+      <CodeBlock code={code} tab={state.tab} onTabChange={v => update('tab', v)} />
     </div>
   );
 }
@@ -3001,21 +3278,21 @@ export function ProgressCustomizer({ state, update }) {
           <div className="flex items-center gap-2 font-mono text-[0.6rem] tracking-widest uppercase text-[#555]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e4ff3c]" />Live Preview
           </div>
-          <div className="flex gap-1.5">{BACKGROUNDS.slice(0,5).map((b,i)=><button key={i} onClick={()=>setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i===bg?'border-white':'border-transparent'}`} style={{background:b.style}}/>)}</div>
+          <div className="flex gap-1.5">{BACKGROUNDS.slice(0, 5).map((b, i) => <button key={i} onClick={() => setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i === bg ? 'border-white' : 'border-transparent'}`} style={{ background: b.style }} />)}</div>
         </div>
         <div className="relative min-h-[300px] flex items-center justify-center overflow-hidden p-6">
           <div className="absolute inset-0" style={{ background: BACKGROUNDS[bg].style }} />
-          <div className="blob-animate absolute w-48 h-48 top-0 left-0 opacity-10 rounded-full" style={{background:'rgba(228,255,60,1)',filter:'blur(70px)'}} />
+          <div className="blob-animate absolute w-48 h-48 top-0 left-0 opacity-10 rounded-full" style={{ background: 'rgba(228,255,60,1)', filter: 'blur(70px)' }} />
           <div className="relative z-10 w-full max-w-sm p-5" style={glassStyle}>
-            <div className="font-bold text-sm mb-4" style={{ color: isLight?'#fff':'#111' }}>Project Progress</div>
+            <div className="font-bold text-sm mb-4" style={{ color: isLight ? '#fff' : '#111' }}>Project Progress</div>
             <div className="flex flex-col gap-4">
               {bars.map(b => (
                 <div key={b.label}>
                   <div className="flex justify-between text-[0.72rem] font-semibold mb-1.5">
-                    <span style={{ color: isLight?'rgba(255,255,255,0.8)':'rgba(0,0,0,0.8)' }}>{b.label}</span>
+                    <span style={{ color: isLight ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)' }}>{b.label}</span>
                     <span style={{ color: b.color }}>{b.pct}%</span>
                   </div>
-                  <div className="h-2 rounded-full overflow-hidden" style={{ background: `rgba(${state.color}, ${(state.opacity/100).toFixed(2)})`, border: `1px solid rgba(${state.color}, ${(state.borderOp/100).toFixed(2)})` }}>
+                  <div className="h-2 rounded-full overflow-hidden" style={{ background: `rgba(${state.color}, ${(state.opacity / 100).toFixed(2)})`, border: `1px solid rgba(${state.color}, ${(state.borderOp / 100).toFixed(2)})` }}>
                     <div className="h-full rounded-full transition-all duration-700" style={{ width: b.pct + '%', background: b.color }} />
                   </div>
                 </div>
@@ -3030,7 +3307,7 @@ export function ProgressCustomizer({ state, update }) {
         <StatCard label="Radius" value={state.radius} unit="px" />
         <StatCard label="Border" value={state.borderOp} unit="%" />
       </div>
-      <CodeBlock code={code} tab={state.tab} onTabChange={v=>update('tab',v)} />
+      <CodeBlock code={code} tab={state.tab} onTabChange={v => update('tab', v)} />
     </div>
   );
 }
@@ -3041,7 +3318,7 @@ export function ChartCustomizer({ state, update }) {
   const glassStyle = buildGlassStyle(state);
   const isLight = state.textColor === 'light';
   const data = [40, 65, 50, 80, 55, 90, 70, 85, 60, 95, 75, 88];
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const maxV = Math.max(...data);
   const code = buildChartCode(state);
   return (
@@ -3051,16 +3328,16 @@ export function ChartCustomizer({ state, update }) {
           <div className="flex items-center gap-2 font-mono text-[0.6rem] tracking-widest uppercase text-[#555]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e4ff3c]" />Live Preview
           </div>
-          <div className="flex gap-1.5">{BACKGROUNDS.slice(0,5).map((b,i)=><button key={i} onClick={()=>setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i===bg?'border-white':'border-transparent'}`} style={{background:b.style}}/>)}</div>
+          <div className="flex gap-1.5">{BACKGROUNDS.slice(0, 5).map((b, i) => <button key={i} onClick={() => setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i === bg ? 'border-white' : 'border-transparent'}`} style={{ background: b.style }} />)}</div>
         </div>
         <div className="relative min-h-[340px] flex items-center justify-center overflow-hidden p-6">
           <div className="absolute inset-0" style={{ background: BACKGROUNDS[bg].style }} />
-          <div className="blob-animate absolute w-48 h-48 top-0 right-0 opacity-10 rounded-full" style={{background:'rgba(60,159,255,1)',filter:'blur(70px)'}} />
+          <div className="blob-animate absolute w-48 h-48 top-0 right-0 opacity-10 rounded-full" style={{ background: 'rgba(60,159,255,1)', filter: 'blur(70px)' }} />
           <div className="relative z-10 w-full max-w-md p-5" style={glassStyle}>
             <div className="flex justify-between items-center mb-4">
               <div>
-                <div className="font-bold text-sm" style={{ color: isLight?'#fff':'#111' }}>Monthly Revenue</div>
-                <div className="font-mono text-[0.65rem]" style={{ color: isLight?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.5)' }}>2024 overview</div>
+                <div className="font-bold text-sm" style={{ color: isLight ? '#fff' : '#111' }}>Monthly Revenue</div>
+                <div className="font-mono text-[0.65rem]" style={{ color: isLight ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }}>2024 overview</div>
               </div>
               <span className="text-[#3cffa0] font-bold text-sm">+24.5%</span>
             </div>
@@ -3068,13 +3345,13 @@ export function ChartCustomizer({ state, update }) {
               {data.map((v, i) => (
                 <div key={i} className="group flex-1 flex flex-col items-center gap-1">
                   <div className="w-full rounded-sm transition-all duration-300 group-hover:opacity-100 opacity-80"
-                    style={{ height: (v / maxV * 100) + '%', background: `rgba(228,255,60,${0.3 + v/maxV*0.7})`, minHeight: '4px' }} />
+                    style={{ height: (v / maxV * 100) + '%', background: `rgba(228,255,60,${0.3 + v / maxV * 0.7})`, minHeight: '4px' }} />
                 </div>
               ))}
             </div>
             <div className="flex gap-1 mt-2">
               {months.map(m => (
-                <div key={m} className="flex-1 text-center font-mono text-[0.45rem]" style={{ color: isLight?'rgba(255,255,255,0.35)':'rgba(0,0,0,0.35)' }}>{m}</div>
+                <div key={m} className="flex-1 text-center font-mono text-[0.45rem]" style={{ color: isLight ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)' }}>{m}</div>
               ))}
             </div>
           </div>
@@ -3086,7 +3363,7 @@ export function ChartCustomizer({ state, update }) {
         <StatCard label="Radius" value={state.radius} unit="px" />
         <StatCard label="Saturation" value={state.saturation} unit="%" />
       </div>
-      <CodeBlock code={code} tab={state.tab} onTabChange={v=>update('tab',v)} />
+      <CodeBlock code={code} tab={state.tab} onTabChange={v => update('tab', v)} />
     </div>
   );
 }
@@ -3107,24 +3384,24 @@ export function SliderUiCustomizer({ state, update }) {
           <div className="flex items-center gap-2 font-mono text-[0.6rem] tracking-widest uppercase text-[#555]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#e4ff3c]" />Live Preview
           </div>
-          <div className="flex gap-1.5">{BACKGROUNDS.slice(0,5).map((b,i)=><button key={i} onClick={()=>setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i===bg?'border-white':'border-transparent'}`} style={{background:b.style}}/>)}</div>
+          <div className="flex gap-1.5">{BACKGROUNDS.slice(0, 5).map((b, i) => <button key={i} onClick={() => setBg(i)} className={`w-6 h-6 rounded-md border-2 ${i === bg ? 'border-white' : 'border-transparent'}`} style={{ background: b.style }} />)}</div>
         </div>
         <div className="relative min-h-[300px] flex items-center justify-center overflow-hidden p-6">
           <div className="absolute inset-0" style={{ background: BACKGROUNDS[bg].style }} />
-          <div className="blob-animate absolute w-48 h-48 top-0 left-0 opacity-10 rounded-full" style={{background:'rgba(60,255,216,1)',filter:'blur(70px)'}} />
+          <div className="blob-animate absolute w-48 h-48 top-0 left-0 opacity-10 rounded-full" style={{ background: 'rgba(60,255,216,1)', filter: 'blur(70px)' }} />
           <div className="relative z-10 w-full max-w-sm p-5 flex flex-col gap-5" style={glassStyle}>
-            <div className="font-bold text-sm" style={{ color: isLight?'#fff':'#111' }}>Audio Controls</div>
-            {[{ label:'Volume', val:v1, set:setV1, color:'#e4ff3c' },
-              { label:'Bass', val:v2, set:setV2, color:'#3cffa0' },
-              { label:'Treble', val:v3, set:setV3, color:'#3c9fff' }].map(s=>(
+            <div className="font-bold text-sm" style={{ color: isLight ? '#fff' : '#111' }}>Audio Controls</div>
+            {[{ label: 'Volume', val: v1, set: setV1, color: '#e4ff3c' },
+            { label: 'Bass', val: v2, set: setV2, color: '#3cffa0' },
+            { label: 'Treble', val: v3, set: setV3, color: '#3c9fff' }].map(s => (
               <div key={s.label}>
                 <div className="flex justify-between text-[0.72rem] font-semibold mb-2">
-                  <span style={{color:isLight?'rgba(255,255,255,0.7)':'rgba(0,0,0,0.7)'}}>{s.label}</span>
-                  <span style={{color:s.color}}>{s.val}%</span>
+                  <span style={{ color: isLight ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)' }}>{s.label}</span>
+                  <span style={{ color: s.color }}>{s.val}%</span>
                 </div>
                 <input type="range" min={0} max={100} value={s.val}
-                  onChange={e=>s.set(parseInt(e.target.value))}
-                  style={{'--pct':`${s.val}%`, '--accent':s.color}} />
+                  onChange={e => s.set(parseInt(e.target.value))}
+                  style={{ '--pct': `${s.val}%`, '--accent': s.color }} />
               </div>
             ))}
           </div>
@@ -3136,7 +3413,7 @@ export function SliderUiCustomizer({ state, update }) {
         <StatCard label="Radius" value={state.radius} unit="px" />
         <StatCard label="Border" value={state.borderOp} unit="%" />
       </div>
-      <CodeBlock code={code} tab={state.tab} onTabChange={v=>update('tab',v)} />
+      <CodeBlock code={code} tab={state.tab} onTabChange={v => update('tab', v)} />
     </div>
   );
 }

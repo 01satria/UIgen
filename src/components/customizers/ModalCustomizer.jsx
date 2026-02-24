@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 
 function buildModalCode(state) {
-  const a  = (state.opacity / 100).toFixed(2);
+  const a = (state.opacity / 100).toFixed(2);
   const ba = (state.borderOp / 100).toFixed(2);
   const sa = (state.shadow / 100 * 0.5).toFixed(2);
   const bFilter = `blur(${state.blur}px) saturate(${state.saturation}%)`;
@@ -16,6 +16,8 @@ function buildModalCode(state) {
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+  z-index: 50;
 }
 
 .modal {
@@ -25,7 +27,65 @@ function buildModalCode(state) {
   border: 1px solid rgba(${state.color}, ${ba});
   border-radius: ${state.radius}px;
   box-shadow: 0 24px 64px rgba(0, 0, 0, ${sa});
-  padding: 1.75rem; max-width: 480px; width: 90%;
+  padding: 1.25rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.modal-header h2 { color: #fff; font-weight: 700; font-size: 0.95rem; }
+.modal-body { color: rgba(255,255,255,0.6); font-size: 0.82rem; line-height: 1.6; }
+.modal-close { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 1.15rem; }
+.modal-close:hover { color: #fff; }
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.btn-cancel {
+  flex: 1; padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: rgba(255,255,255,0.08);
+  color: #fff; border: 1px solid rgba(${state.color}, ${ba});
+  font-weight: 600; cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.btn-confirm {
+  flex: 1; padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: #e4ff3c;
+  color: #000; border: none;
+  font-weight: 700; cursor: pointer;
+  font-size: 0.82rem;
+}
+
+/* ── Tablet (≥768px) ── */
+@media (min-width: 768px) {
+  .modal {
+    padding: 1.5rem;
+    max-width: 420px;
+  }
+  .modal-header h2 { font-size: 1rem; }
+  .modal-body { font-size: 0.85rem; }
+}
+
+/* ── PC (≥1024px) ── */
+@media (min-width: 1024px) {
+  .modal {
+    padding: 1.75rem;
+    max-width: 480px;
+  }
+  .modal-header h2 { font-size: 1.1rem; }
+  .modal-body { font-size: 0.875rem; }
 }
 
 <!-- HTML Markup -->
@@ -35,7 +95,7 @@ function buildModalCode(state) {
       <h2>Confirm Action</h2>
       <button class="modal-close">&times;</button>
     </div>
-    <p>Are you sure you want to proceed?</p>
+    <p class="modal-body">Are you sure you want to proceed? This action cannot be undone.</p>
     <div class="modal-actions">
       <button class="btn-cancel">Cancel</button>
       <button class="btn-confirm">Confirm</button>
@@ -43,21 +103,57 @@ function buildModalCode(state) {
   </div>
 </div>`;
 
-  if (state.tab === 'tailwind') return `<!-- Tailwind CSS Markup -->
+  if (state.tab === 'tailwind') return `<!-- Tailwind CSS Markup (Mobile-first responsive) -->
+
 <!-- Overlay -->
-<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+<div class="fixed inset-0 bg-black/60 backdrop-blur-sm
+  flex items-center justify-center z-50 p-4">
+
   <!-- Modal -->
-  <div class="bg-white/${Math.round(state.opacity)} backdrop-blur-[${state.blur}px] backdrop-saturate-[${state.saturation}%] border border-white/${Math.round(state.borderOp)} rounded-[${state.radius}px] shadow-[0_24px_64px_rgba(0,0,0,${sa})] p-7 w-[90%] max-w-lg">
-    <div class="flex items-start justify-between mb-4">
+  <div class="w-full max-w-full p-5
+    md:max-w-[420px] md:p-6
+    lg:max-w-lg lg:p-7
+    bg-white/${Math.round(state.opacity)}
+    backdrop-blur-[${state.blur}px]
+    backdrop-saturate-[${state.saturation}%]
+    border border-white/${Math.round(state.borderOp)}
+    rounded-[${state.radius}px]
+    shadow-[0_24px_64px_rgba(0,0,0,${sa})]">
+
+    <!-- Header -->
+    <div class="flex items-start justify-between mb-3 md:mb-4">
       <div>
-        <h2 class="text-base font-bold text-white">Confirm Action</h2>
-        <p class="text-sm text-white/60 mt-1">Are you sure you want to proceed?</p>
+        <h2 class="text-[0.95rem] md:text-base lg:text-lg
+          font-bold text-white">
+          Confirm Action
+        </h2>
+        <p class="text-xs md:text-sm text-white/60 mt-1">
+          Are you sure you want to proceed?
+        </p>
       </div>
-      <button class="p-1.5 rounded-lg text-white/50 hover:bg-white/10">&times;</button>
+      <button class="p-1.5 rounded-lg text-white/50
+        hover:bg-white/10 transition-colors">
+        &times;
+      </button>
     </div>
-    <div class="flex gap-2 mt-5">
-      <button class="flex-1 py-2 rounded-lg bg-white/10 text-white text-sm font-semibold">Cancel</button>
-      <button class="flex-1 py-2 rounded-lg bg-[#e4ff3c] text-black text-sm font-bold">Confirm</button>
+
+    <!-- Body -->
+    <p class="text-xs md:text-sm text-white/60 leading-relaxed mb-4 md:mb-5">
+      This action cannot be undone.
+    </p>
+
+    <!-- Actions -->
+    <div class="flex gap-2">
+      <button class="flex-1 py-2 rounded-lg
+        bg-white/10 text-white text-xs md:text-sm
+        font-semibold hover:-translate-y-0.5 transition-all">
+        Cancel
+      </button>
+      <button class="flex-1 py-2 rounded-lg
+        bg-[#e4ff3c] text-black text-xs md:text-sm
+        font-bold hover:-translate-y-0.5 transition-all">
+        Confirm
+      </button>
     </div>
   </div>
 </div>`;
@@ -69,6 +165,30 @@ function buildModalCode(state) {
   --glass-border: rgba(${state.color}, ${ba});
   --glass-radius: ${state.radius}px;
   --glass-shadow: 0 24px 64px rgba(0, 0, 0, ${sa});
+  --modal-padding: 1.25rem;
+  --modal-max-w: 100%;
+  --modal-title-size: 0.95rem;
+  --modal-text-size: 0.82rem;
+}
+
+/* ── Tablet ── */
+@media (min-width: 768px) {
+  :root {
+    --modal-padding: 1.5rem;
+    --modal-max-w: 420px;
+    --modal-title-size: 1rem;
+    --modal-text-size: 0.85rem;
+  }
+}
+
+/* ── PC ── */
+@media (min-width: 1024px) {
+  :root {
+    --modal-padding: 1.75rem;
+    --modal-max-w: 480px;
+    --modal-title-size: 1.1rem;
+    --modal-text-size: 0.875rem;
+  }
 }
 
 .modal-overlay {
@@ -76,6 +196,7 @@ function buildModalCode(state) {
   background: rgba(0,0,0,0.6);
   backdrop-filter: blur(4px);
   display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
 }
 
 .modal {
@@ -84,8 +205,13 @@ function buildModalCode(state) {
   border: 1px solid var(--glass-border);
   border-radius: var(--glass-radius);
   box-shadow: var(--glass-shadow);
-  padding: 1.75rem; max-width: 480px; width: 90%;
+  padding: var(--modal-padding);
+  width: 100%;
+  max-width: var(--modal-max-w);
 }
+
+.modal h2 { font-size: var(--modal-title-size); color: #fff; font-weight: 700; }
+.modal p  { font-size: var(--modal-text-size); color: rgba(255,255,255,0.6); line-height: 1.6; }
 
 <!-- HTML Markup -->
 <div class="modal-overlay">
@@ -99,36 +225,64 @@ function buildModalCode(state) {
   </div>
 </div>`;
 
-  return `const overlayStyle = {
+  return `import { useEffect, useState } from 'react';
+
+/* ── Responsive hook ── */
+function useBreakpoint() {
+  const [bp, setBp] = useState('mobile');
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      setBp(w >= 1024 ? 'pc' : w >= 768 ? 'tablet' : 'mobile');
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  return bp;
+}
+
+const sizes = {
+  mobile:  { padding: '1.25rem', maxWidth: '100%',  titleSize: '0.95rem', textSize: '0.82rem' },
+  tablet:  { padding: '1.5rem',  maxWidth: '420px', titleSize: '1rem',    textSize: '0.85rem' },
+  pc:      { padding: '1.75rem', maxWidth: '480px', titleSize: '1.1rem',  textSize: '0.875rem' },
+};
+
+const overlayStyle = {
   position: 'fixed', inset: 0,
   background: 'rgba(0,0,0,0.6)',
   backdropFilter: 'blur(4px)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
+  padding: '1rem',
   zIndex: 50,
 };
 
-const modalStyle = {
-  background: \`rgba(${state.color}, ${a})\`,
-  backdropFilter: \`${bFilter}\`,
-  WebkitBackdropFilter: \`${bFilter}\`,
-  border: \`1px solid rgba(${state.color}, ${ba})\`,
-  borderRadius: \`${state.radius}px\`,
-  boxShadow: \`0 24px 64px rgba(0,0,0,${sa})\`,
-  padding: '1.75rem',
-  maxWidth: '480px',
-  width: '90%',
-};
-
 export const GlassModal = ({ open, onClose, title, children }) => {
+  const bp = useBreakpoint();
+  const s = sizes[bp];
+
   if (!open) return null;
+
+  const modalStyle = {
+    background: \`rgba(${state.color}, ${a})\`,
+    backdropFilter: \`${bFilter}\`,
+    WebkitBackdropFilter: \`${bFilter}\`,
+    border: \`1px solid rgba(${state.color}, ${ba})\`,
+    borderRadius: \`${state.radius}px\`,
+    boxShadow: \`0 24px 64px rgba(0,0,0,${sa})\`,
+    padding: s.padding,
+    width: '100%',
+    maxWidth: s.maxWidth,
+  };
+
   return (
     <div style={overlayStyle} onClick={onClose}>
       <div style={modalStyle} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <h2 style={{ color: '#fff', fontWeight: 700 }}>{title}</h2>
-          <button onClick={onClose} style={{ color: 'rgba(255,255,255,0.5)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
+          <h2 style={{ color: '#fff', fontWeight: 700, fontSize: s.titleSize }}>{title}</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '1.15rem' }}>✕</button>
         </div>
-        <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', lineHeight: 1.6 }}>{children}</div>
+        <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: s.textSize, lineHeight: 1.6 }}>{children}</div>
         <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem' }}>
           <button onClick={onClose} style={{ flex: 1, padding: '0.5rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
           <button onClick={onClose} style={{ flex: 1, padding: '0.5rem', borderRadius: '0.5rem', background: '#e4ff3c', color: '#000', border: 'none', cursor: 'pointer', fontWeight: 700 }}>Confirm</button>
@@ -193,7 +347,7 @@ export default function ModalCustomizer({ state, update }) {
               </div>
               <div className="flex gap-2">
                 <button onClick={() => setOpen(false)} className="flex-1 py-2 rounded-lg text-[0.8rem] font-semibold transition-all hover:-translate-y-0.5 hover:bg-white/15"
-                  style={{ background: 'rgba(255,255,255,0.08)', color: textColor, border: `1px solid rgba(${state.color}, ${(state.borderOp/100).toFixed(2)})` }}>
+                  style={{ background: 'rgba(255,255,255,0.08)', color: textColor, border: `1px solid rgba(${state.color}, ${(state.borderOp / 100).toFixed(2)})` }}>
                   Cancel
                 </button>
                 <button onClick={() => setOpen(false)} className="flex-1 py-2 rounded-lg text-[0.8rem] font-bold transition-all hover:-translate-y-0.5"
